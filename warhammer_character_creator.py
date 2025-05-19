@@ -4,6 +4,7 @@ from rich.console import Console
 from rich.table import Table
 from rich import print
 from itertools import cycle
+from talents import Talent
 import typer
 
 
@@ -11,41 +12,52 @@ app = typer.Typer()
 
 
 RANDOM_TALENTS = [
-    "[cyan]Acute Sense[/cyan] [green](Enhanced chosen sense)[/green]",
-    "[cyan]Ambidextrous[/cyan]",
-    "[cyan]Animal Affinity[/cyan] [green](Animals feel calm around you)[/green]",
-    "[cyan]Artistic[/cyan] [green](You can make precise sketches)[/green]",
-    "[cyan]Attractive[/cyan] [green](Better charming)[/green]",
-    "[cyan]Coolheaded[/cyan] [green](+5 Willpower)[/green]",
-    "[cyan]Craftsman[/cyan] [green](Enhanced Trade(Any))[/green]",
-    "[cyan]Flee![/cyan] [green](+1 Movement when Fleeing)[/green]",
-    "[cyan]Hardy[/cyan] [green](Additional Wounds)[/green]",
-    "[cyan]Lightning Reflexes[/cyan] [green](+5 Agility)[/green]",
-    # "[cyan]Linguistics[/cyan] [green](You can learn languages by exposure)[/green]",
-    "[cyan]Luck[/cyan] [green](+1 Fortune Point)[/green]",
-    "[cyan]Marksman[/cyan] [green](+5 Ballistic Skill)[/green]",
-    "[cyan]Mimic[/cyan] [green](You can replicate accent)[/green]",
-    "[cyan]Night Vision[/cyan]",
-    "[cyan]Nimble Fingered[/cyan] [green](+5 Dexterity)[/green]",
-    "[cyan]Noble Blood[/cyan] [green](Higher Status if dressed)[/green]",
-    # "[cyan]Orientation[/cyan]",
-    "[cyan]Perfect Pitch[/cyan] [green](Enhanced Entertain(Sing) and Tonal Languages)[/green]",
-    "[cyan]Pure Soul[/cyan] [green](More resistant to mutations)[/green]",
-    "[cyan]Read/Write[/cyan]",
-    "[cyan]Resistance (Corruption)[/cyan] [green](Auto-pass on first Resist(Corruption) test)[/green]",
-    "[cyan]Resistance (Disease)[/cyan] [green](Auto-pass on first Resist(Disease) test)[/green]",
-    "[cyan]Resistance (Poison)[/cyan] [green](Auto-pass on first Resist(Poison) test)[/green]",
-    "[cyan]Resistance (Every Weather)[/cyan] [green](Auto-pass on first Resist(Every Weather) test)[/green]",
-    "[cyan]Savvy[/cyan] [green](+5 Intelligence)[/green]",
-    "[cyan]Sharp[/cyan] [green](+5 Initiative)[/green]",
-    "[cyan]Sixth Sense[/cyan] [green](Sense danger)[/green]",
-    # "[cyan]Strong Legs[/cyan] [green](Better Leaping)[/green]",
-    "[cyan]Sturdy[/cyan] [green](You can carry more encumbrance)[/green]",
-    "[cyan]Suave[/cyan] [green](+5 Fellowship)[/green]",
-    # "[cyan]Super Numerate[/cyan]",
-    "[cyan]Very Resilient[/cyan] [green](+5 Toughness)[/green]",
-    "[cyan]Very Strong[/cyan] [green](+5 Strength)[/green]",
-    "[cyan]Warrior Born[/cyan] [green](+5 Weapon Skill)[/green]",
+    # Main Stats Section
+    Talent("Warrior Born", "+5 Weapon Skill"),
+    Talent("Marksman", "+5 Ballistic Skill"),
+    Talent("Very Strong", "+5 Strength"),
+    Talent("Very Resilient", "+5 Toughness"),
+    Talent("Sharp", "+5 Initiative"),
+    Talent("Lightning Reflexes", "+5 Agility"),
+    Talent("Nimble Fingered", "+5 Dexterity"),
+    Talent("Savvy", "+5 Intelligence"),
+    Talent("Coolheaded", "+5 Willpower"),
+    Talent("Suave", "+5 Fellowship"),
+
+    # Additional Stats
+    Talent("Flee!", "+1 Movement when Fleeing"),
+    Talent("Hardy", "Additional Wounds"),
+    Talent("Luck", "+1 Fortune Point"),
+
+    # Resistance Section
+    Talent("Pure Soul", "More resistant to mutations"),
+    Talent("Resistance (Corruption)", "Auto-pass on first Resist(Corruption) test"),
+    Talent("Resistance (Disease)", "Auto-pass on first Resist(Disease) test"),
+    Talent("Resistance (Poison)", "Auto-pass on first Resist(Poison) test"),
+    Talent("Resistance (Every Weather)", "Auto-pass on first Resist(Every Weather) test"),
+
+    # Roleplay Section
+    Talent("Read/Write"),
+    Talent("Noble Blood", "Higher Status if dressed"),
+    Talent("Attractive", "Better charming"),
+    Talent("Mimic", "You can replicate accent"),
+    Talent("Animal Affinity", "Animals feel calm around you"),
+    Talent("Artistic", "You can make precise sketches"),
+    Talent("Craftsman", "Enhanced Trade(Any)"),
+    Talent("Perfect Pitch", "Enhanced Entertain(Sing) and Tonal Languages"),
+
+    # Body Enhancement Section
+    Talent("Acute Sense", "Enhanced chosen sense"),
+    Talent("Ambidextrous"),
+    Talent("Night Vision"),
+    Talent("Sixth Sense", "Sense danger"),
+    Talent("Sturdy", "You can carry more encumbrance"),
+    
+    # Useless Section
+    # Talent("Linguistics", "You can learn languages by exposure"),
+    # Talent("Orientation"),
+    # Talent("Strong Legs", "Better Leaping"),
+    # Talent("Super Numerate"),
 ]
 COLORS = ["cyan", "magenta", "green", "red", "yellow"]
 NUMBER_OF_STATS = 10
@@ -131,7 +143,7 @@ def get_random_talent(num=1):
     second_talent = choice(RANDOM_TALENTS)
     RANDOM_TALENTS.remove(second_talent)
 
-    print(f"Random Talent {num}: {first_talent} or {second_talent}")
+    print(f"Random Talent {num}: {first_talent.full_name} or {second_talent.full_name}")
 
 
 def remove_used_talents(used_talents):
@@ -142,7 +154,7 @@ def remove_used_talents(used_talents):
     for detected_talent in detected_talents:
         RANDOM_TALENTS.remove(detected_talent)
 
-    print(f"Detected Removed talents: {detected_talents}")
+    print(f"Detected Removed talents: {[talent.full_name for talent in detected_talents]}")
 
 
 def detect_talents(used_talents):
@@ -151,7 +163,7 @@ def detect_talents(used_talents):
     detected_talents = []
     for talent in talents:
         for random_talent in RANDOM_TALENTS:
-            if talent.lower() in random_talent.lower():
+            if talent.lower() in random_talent.full_name.lower():
                 detected_talents.append(random_talent)
                 break
     return detected_talents
