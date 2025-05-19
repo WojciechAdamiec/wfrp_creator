@@ -52,9 +52,14 @@ NUMBER_OF_STATS = 10
 NUMBER_OF_STATS_SET = 3
 MIN_VALUE_OF_STATS_SET = 100
 MAX_VALUE_OF_STATS_SET = 130
+ADDITIONAL_COST_FOR_STATS = {
+    19: 20,
+    20: 22
+}
 POINT_BUY = 105
-SHOW_STAT_VALUES = False
+SHOW_STAT_VALUES = True
 NUMBER_OF_RANDOM_TALENTS = 3
+STARTING_EXP = 300
 
 
 def get_set_of_stats():
@@ -67,7 +72,7 @@ def get_set_of_stats():
 
 
 def compute_value_of_stats(stats):
-    return sum([stat if stat <= 18 else stat + (stat - 18) for stat in stats])
+    return sum([stat if stat not in ADDITIONAL_COST_FOR_STATS else ADDITIONAL_COST_FOR_STATS[stat] for stat in stats])
 
 
 def print_intro():
@@ -90,8 +95,8 @@ def print_star_sign_info():
     print(f"- You can either choose a star sign or pick a random one. Either way there no additional experience.")
 
 
-def print_starting_exp(starting_exp):
-    print(f"Starting experience is [red]{starting_exp}[/red].")
+def print_starting_exp():
+    print(f"Starting experience is [red]{STARTING_EXP}[/red].")
 
 
 def get_table_with_stats():
@@ -174,7 +179,7 @@ def main(used_talents: Annotated[str, typer.Option(help="Already used talents. A
     print()
     get_random_talents()
     print()
-    print_starting_exp(300)
+    print_starting_exp()
     print()
 
 
