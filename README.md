@@ -1,1 +1,1 @@
-# wfrp_creator
+# Warhammer Fantasy Roleplay Character Creator
