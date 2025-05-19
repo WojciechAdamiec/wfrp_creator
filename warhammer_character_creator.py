@@ -24,7 +24,7 @@ RANDOM_TALENTS = [
     Talent("Coolheaded", "+5 Willpower"),
     Talent("Suave", "+5 Fellowship"),
 
-    # Additional Stats
+    # Additional Stats Section
     Talent("Flee!", "+1 Movement when Fleeing"),
     Talent("Hardy", "Additional Wounds"),
     Talent("Luck", "+1 Fortune Point"),
