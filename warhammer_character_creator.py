@@ -1,9 +1,9 @@
 from random import randint, choice
-from typing import List, Optional
 from typing_extensions import Annotated
 from rich.console import Console
 from rich.table import Table
 from rich import print
+from itertools import cycle
 import typer
 
 
@@ -47,12 +47,14 @@ RANDOM_TALENTS = [
     "[cyan]Very Strong[/cyan] [green](+5 Strength)[/green]",
     "[cyan]Warrior Born[/cyan] [green](+5 Weapon Skill)[/green]",
 ]
-COLORS_ITER = iter(["cyan", "magenta", "green", "red", "yellow"])
+COLORS = ["cyan", "magenta", "green", "red", "yellow"]
 NUMBER_OF_STATS = 10
 NUMBER_OF_STATS_SET = 3
 MIN_VALUE_OF_STATS_SET = 100
 MAX_VALUE_OF_STATS_SET = 130
 POINT_BUY = 105
+SHOW_STAT_VALUES = False
+NUMBER_OF_RANDOM_TALENTS = 3
 
 
 def get_set_of_stats():
@@ -94,11 +96,12 @@ def print_starting_exp(starting_exp):
 
 def get_table_with_stats():
     stats_blocks = [sorted(get_set_of_stats(), key=lambda x: -x) for _ in range(NUMBER_OF_STATS_SET)]
+    colors = cycle(COLORS)
     
     table = Table(title="Stats")
 
     for i in range(len(stats_blocks)):
-        table.add_column(f"STATS SET {i + 1}", justify="center", style=next(COLORS_ITER, "black"))
+        table.add_column(f"STATS SET {i + 1}", justify="center", style=next(colors))
 
     for i in range(NUMBER_OF_STATS):
         values = [str(stats[i]) for stats in stats_blocks]
@@ -107,8 +110,9 @@ def get_table_with_stats():
     sum_values = [f"SUM: {sum(stats)}" for stats in stats_blocks]
     table.add_row(*sum_values)
 
-    # sum_values = [f"VALUE: {compute_value_of_stats(stats)}" for stats in stats_blocks]
-    # table.add_row(*sum_values)
+    if SHOW_STAT_VALUES:
+        sum_values = [f"VALUE: {compute_value_of_stats(stats)}" for stats in stats_blocks]
+        table.add_row(*sum_values)
 
     console = Console()
     console.print(table)
@@ -148,6 +152,11 @@ def detect_talents(used_talents):
     return detected_talents
 
 
+def get_random_talents():
+    for i in range(NUMBER_OF_RANDOM_TALENTS):
+        get_random_talent(i + 1)
+
+
 @app.command(help="Generate stats.")
 def main(used_talents: Annotated[str, typer.Option(help="Already used talents. Add then with commas.")] = ""):
     print()
@@ -163,11 +172,7 @@ def main(used_talents: Annotated[str, typer.Option(help="Already used talents. A
     print()
     remove_used_talents(used_talents)
     print()
-    get_random_talent(1)
-    get_random_talent(2)
-    get_random_talent(3)
-    get_random_talent(4)
-    get_random_talent(5)
+    get_random_talents()
     print()
     print_starting_exp(300)
     print()
