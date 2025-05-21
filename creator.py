@@ -1,6 +1,7 @@
 from random import randint, choice
 from typing_extensions import Annotated
 from rich.panel import Panel
+from rich.align import Align
 from rich.columns import Columns
 from rich.console import Console
 from rich.table import Table
@@ -27,7 +28,6 @@ ADDITIONAL_COST_FOR_STATS = {
 }
 POINT_BUY = 105
 SHOW_STAT_VALUES = True
-NUMBER_OF_RANDOM_TALENTS = 3
 STARTING_EXP = 300
 
 
@@ -55,7 +55,7 @@ class CharacterCreation:
         tables = [race.get_table_with_race(idx + 1) for idx, race in enumerate(RACES)]
 
         panel = Panel.fit(
-            Columns(tables),
+            Align.center(Columns(tables)),
             title="Available Races",
             border_style="red",
             title_align="left",
@@ -70,7 +70,7 @@ class CharacterCreation:
     def print_selected_race_info(self):
         table = self.RACE.get_table_with_race()
         console.print()
-        console.print(table)
+        console.print(table, justify="center")
         console.print()
 
     def handle_race_selection(self):
@@ -120,7 +120,7 @@ class CharacterCreation:
             sum_values = [f"VALUE: {self.compute_value_of_stats(stats)}" for stats in stats_blocks]
             table.add_row(*sum_values)
 
-        console.print(table)
+        console.print(table, justify="center")
         console.print(f"You can either choose one of the sets or make a point-buy with sum of {POINT_BUY} points (4-18 per stat).")
         console.print(f"To select a set: Type a number visible near set you want to choose or type 0 for a point-buy.")
         console.print()
@@ -148,8 +148,9 @@ class CharacterCreation:
         console.print()
     
     def print_selected_stats_info(self, suppress=False):
-        if self._point_buy and not suppress:
-            console.print(f"[green]Point-buy selected.[/green]")
+        if self._point_buy:
+            if not suppress:
+                console.print(f"[green]Point-buy selected.[/green]")
             return f"[green]Point-buy selected.[/green]"
         else:
             table = Table(title="Stats")
@@ -166,14 +167,13 @@ class CharacterCreation:
                 table.add_row(sum_values)
             
             if not suppress:
-                console.print(table)
+                console.print(table, justify="center")
             return table
-
-    def print_career_info(self):
-        console.print(f"- You can either choose a career or pick a random one. Either way there no additional experience.")
-
-    def print_starting_exp(self):
-        console.print(f"- Starting experience is [red]{STARTING_EXP}[/red].")
+    
+    def get_outro_info(self):
+        career_info = f"- You can either choose a career or pick a random one. Either way there no additional experience."
+        exp_info = f"- Starting experience is [red]{STARTING_EXP}[/red]."
+        return career_info + "\n" + exp_info + "\n"
     
     def get_set_of_stats(self):
         result = []
@@ -190,11 +190,24 @@ class CharacterCreation:
         if not used_talents:
             return
         detected_talents = self.detect_talents(used_talents)
+        self._detected_talents = detected_talents
 
         for detected_talent in detected_talents:
             RANDOM_TALENTS.remove(detected_talent)
 
-        print(f"Detected Removed talents: {[talent.full_name for talent in detected_talents]}")
+        console.print()
+        console.print(self.get_detected_talents_table(), justify="center")
+        console.print()
+    
+    def get_detected_talents_table(self):
+        table = Table(title="Detected talents from random pool")
+
+        table.add_column(f"Talent", justify="center", style="yellow")
+
+        for detected_talent in self._detected_talents:
+            table.add_row(f"{detected_talent.full_name}")
+
+        return table
 
     def detect_talents(self, used_talents):
         talents = [talent.strip() for talent in used_talents.split(",")]
@@ -207,19 +220,24 @@ class CharacterCreation:
                     break
         return detected_talents
 
-    def print_random_talents(self):
-        for i in range(NUMBER_OF_RANDOM_TALENTS):
-            self.print_random_talent(i + 1)
+    def get_random_talents_table(self, number_of_random_talents):
+        table = Table(title="Random Talents")
 
-    def print_random_talent(self, num=1):
-        first_talent = choice(RANDOM_TALENTS)
-        RANDOM_TALENTS.remove(first_talent)
+        table.add_column(f"#", justify="center", style="cyan")
+        table.add_column(f"Talent A", justify="center")
+        table.add_column(f"Talent B", justify="center")
 
-        second_talent = choice(RANDOM_TALENTS)
-        RANDOM_TALENTS.remove(second_talent)
+        for idx in range(number_of_random_talents):
+            first_talent = choice(RANDOM_TALENTS)
+            RANDOM_TALENTS.remove(first_talent)
 
-        print(f"Random Talent {num}: {first_talent.full_name} or {second_talent.full_name}")
-    
+            second_talent = choice(RANDOM_TALENTS)
+            RANDOM_TALENTS.remove(second_talent)
+
+            table.add_row(f"{idx + 1}", f"{first_talent.full_name}", f"{second_talent.full_name}")
+
+        return table
+
     def print_star_signs_info(self):
         table = Table(title="Star Signs")
 
@@ -230,14 +248,14 @@ class CharacterCreation:
         for idx, star_sign in enumerate(STAR_SIGNS):
             table.add_row(f"{idx + 1}", f"{star_sign.NAME}", f"{star_sign.EFFECT}")
 
-        console.print(table)
+        console.print(table, justify="center")
         console.print(f"You can either choose a star sign or pick a random one. Either way there no additional experience.")
         console.print(f"To select a star sign: Type a number visible near star sign you want to choose or type 0 for a random one.")
         console.print()
     
     def print_selected_star_sign_info(self):
         console.print()
-        console.print(self._star_sign.get_table_with_star_sign())
+        console.print(self._star_sign.get_table_with_star_sign(), justify="center")
 
     def handle_star_sign_selection(self):
         selected_number = Prompt.ask(f"Selected Star Sign")
@@ -265,19 +283,40 @@ class CharacterCreation:
         else:
             self._star_sign = STAR_SIGNS[star_sign_number]
     
-    def print_final_panel(self):
-        panel = Panel.fit(
-            Columns([self.RACE.get_table_with_race(), self.print_selected_stats_info(suppress=True), self._star_sign.get_table_with_star_sign()]),
+    def print_final_panel(self, number_of_random_talents):
+        console.print(60 * "\n")
+        panel = Panel(
+            Align.center(Columns([self.RACE.get_table_with_race(), self.print_selected_stats_info(suppress=True)], padding=(0, 30))),
             title="Final Panel",
             border_style="red",
             title_align="left",
             padding=(1, 2),
         )
         console.print(panel)
+        panel = Panel(
+            Align.center(Columns([self._star_sign.get_table_with_star_sign(), self.get_detected_talents_table()], padding=(0, 10))),
+            title="Final Panel",
+            border_style="red",
+            title_align="left",
+            padding=(1, 2),
+        )
+        console.print(panel)
+        panel = Panel(
+            Align.center(self.get_random_talents_table(number_of_random_talents)),
+            title="Final Panel",
+            border_style="red",
+            title_align="left",
+            padding=(1, 2),
+        )
+        console.print(panel)
+        console.print(self.get_outro_info())
 
 
 @app.command(help="Create a character.")
-def main(used_talents: Annotated[str, typer.Option(help="Already used talents. Add then with commas.")] = ""):
+def main(
+        number_of_random_talents: Annotated[int, typer.Argument(help="Number of random talents.")] = 3, 
+        used_talents: Annotated[str, typer.Option(help="Already used talents. Add then with commas.")] = "",
+    ):
     character = CharacterCreation()
     character.print_intro()
 
@@ -294,12 +333,8 @@ def main(used_talents: Annotated[str, typer.Option(help="Already used talents. A
     character.print_selected_star_sign_info()
 
     character.remove_used_talents(used_talents)
-    character.print_random_talents()
 
-    character.print_final_panel()
-    character.print_career_info()
-    character.print_starting_exp()
-    print()
+    character.print_final_panel(number_of_random_talents)
 
 
 if __name__ == "__main__":
