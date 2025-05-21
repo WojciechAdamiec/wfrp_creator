@@ -235,17 +235,9 @@ class CharacterCreation:
         console.print(f"To select a star sign: Type a number visible near star sign you want to choose or type 0 for a random one.")
         console.print()
     
-    def print_selected_star_sign_info(self, suppress=False):
-        table = Table(title=f"Star Sign")
-        table.add_column(f"{self._star_sign.NAME}", justify="center")
-
-        table.add_row(f"{self._star_sign.SELECTED_EFFECT}")
-
-        if not suppress:
-            console.print()
-            console.print(table)
-            console.print()
-        return table
+    def print_selected_star_sign_info(self):
+        console.print()
+        console.print(self._star_sign.get_table_with_star_sign())
 
     def handle_star_sign_selection(self):
         selected_number = Prompt.ask(f"Selected Star Sign")
@@ -275,7 +267,7 @@ class CharacterCreation:
     
     def print_final_panel(self):
         panel = Panel.fit(
-            Columns([self.RACE.get_table_with_race(), self.print_selected_stats_info(suppress=True), self.print_selected_star_sign_info(suppress=True)]),
+            Columns([self.RACE.get_table_with_race(), self.print_selected_stats_info(suppress=True), self._star_sign.get_table_with_star_sign()]),
             title="Final Panel",
             border_style="red",
             title_align="left",

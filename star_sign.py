@@ -1,4 +1,5 @@
 from weighted_set import WeightedSet
+from rich.table import Table
 
 
 class StarSign:
@@ -33,3 +34,9 @@ class StarSign:
         current_full_name += f"[cyan]{self.NAME}[/cyan]"
         current_full_name += f" [green]({self.EFFECT})[/green]"
         return current_full_name
+    
+    def get_table_with_star_sign(self):
+        table = Table(title=f"Star Sign")
+        table.add_column(f"{self.NAME}", justify="center")
+        table.add_row(f"{self.SELECTED_EFFECT}")
+        return table

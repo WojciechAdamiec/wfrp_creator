@@ -122,7 +122,6 @@ OGRE = Race(
     wounds=Wounds.BIG
 )
 
-
 RACES_DISTRIBUTION = WeightedSet([
     SetValue(HUMAN, 88),
     SetValue(DWARF, 4),
