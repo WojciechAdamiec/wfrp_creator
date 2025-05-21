@@ -1,4 +1,5 @@
 from race import Race, Size, Wounds
+from weighted_set import WeightedSet, SetValue
 
 
 HUMAN = Race(
@@ -121,11 +122,14 @@ OGRE = Race(
     wounds=Wounds.BIG
 )
 
-RACES = [
-    HUMAN,
-    DWARF,
-    HALFLING,
-    ELF,
-    GNOME,
-    OGRE,
-]
+
+RACES_DISTRIBUTION = WeightedSet([
+    SetValue(HUMAN, 88),
+    SetValue(DWARF, 4),
+    SetValue(HALFLING, 4),
+    SetValue(ELF, 2),
+    SetValue(GNOME, 1),
+    SetValue(OGRE, 1),
+])
+
+RACES = RACES_DISTRIBUTION.values

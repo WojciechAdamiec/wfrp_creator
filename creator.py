@@ -8,7 +8,8 @@ from rich.prompt import Prompt
 from rich import print
 from visuals import get_color_cycle
 from random_talents import RANDOM_TALENTS
-from races import RACES
+from races import RACES, RACES_DISTRIBUTION
+from star_signs import STAR_SIGNS, STAR_SIGNS_DISTRIBUTION
 import typer
 
 
@@ -36,6 +37,7 @@ class CharacterCreation:
         self._stats = None
         self._stats_blocks = None
         self._point_buy = False
+        self._star_sign = None
 
     @property
     def RACE(self):
@@ -61,8 +63,6 @@ class CharacterCreation:
         )
 
         console.print(panel)
-    
-    def print_race_info(self):
         console.print(f"You can either choose a race or pick a random one. Either way there no additional experience.")
         console.print(f"To select a race: Type a number visible near race you want to choose or type 0 for a random one.")
         console.print()
@@ -89,7 +89,7 @@ class CharacterCreation:
             raise typer.Abort()
         
         if race_number == -1:
-            race = choice(RACES)
+            race = RACES_DISTRIBUTION.random_value
             accept = typer.confirm(f"Random race: {race.NAME}. Do you accept randomly selected race?")
 
             if not accept:
@@ -147,9 +147,10 @@ class CharacterCreation:
         
         console.print()
     
-    def print_selected_stats_info(self):
-        if self._point_buy:
+    def print_selected_stats_info(self, suppress=False):
+        if self._point_buy and not suppress:
             console.print(f"[green]Point-buy selected.[/green]")
+            return f"[green]Point-buy selected.[/green]"
         else:
             table = Table(title="Stats")
             table.add_column(f"VALUE", justify="center", style="cyan")
@@ -164,19 +165,15 @@ class CharacterCreation:
                 sum_values = f"VALUE: {self.compute_value_of_stats(self._stats)}"
                 table.add_row(sum_values)
             
-            console.print(table)
-    
+            if not suppress:
+                console.print(table)
+            return table
+
     def print_career_info(self):
         console.print(f"- You can either choose a career or pick a random one. Either way there no additional experience.")
-        console.print()
-
-    def print_star_sign_info(self):
-        console.print(f"- You can either choose a star sign or pick a random one. Either way there no additional experience.")
-        console.print()
 
     def print_starting_exp(self):
-        console.print(f"Starting experience is [red]{STARTING_EXP}[/red].")
-        console.print()
+        console.print(f"- Starting experience is [red]{STARTING_EXP}[/red].")
     
     def get_set_of_stats(self):
         result = []
@@ -222,24 +219,95 @@ class CharacterCreation:
         RANDOM_TALENTS.remove(second_talent)
 
         print(f"Random Talent {num}: {first_talent.full_name} or {second_talent.full_name}")
+    
+    def print_star_signs_info(self):
+        table = Table(title="Star Signs")
+
+        table.add_column(f"#", justify="center", style="cyan")
+        table.add_column(f"Name", justify="center", style="yellow")
+        table.add_column(f"Effect", justify="center")
+
+        for idx, star_sign in enumerate(STAR_SIGNS):
+            table.add_row(f"{idx + 1}", f"{star_sign.NAME}", f"{star_sign.EFFECT}")
+
+        console.print(table)
+        console.print(f"You can either choose a star sign or pick a random one. Either way there no additional experience.")
+        console.print(f"To select a star sign: Type a number visible near star sign you want to choose or type 0 for a random one.")
+        console.print()
+    
+    def print_selected_star_sign_info(self, suppress=False):
+        table = Table(title=f"Star Sign")
+        table.add_column(f"{self._star_sign.NAME}", justify="center")
+
+        table.add_row(f"{self._star_sign.SELECTED_EFFECT}")
+
+        if not suppress:
+            console.print()
+            console.print(table)
+            console.print()
+        return table
+
+    def handle_star_sign_selection(self):
+        selected_number = Prompt.ask(f"Selected Star Sign")
+        self.select_star_sign(selected_number)
+    
+    def select_star_sign(self, selected_number: str):
+        try:
+            star_sign_number = int(selected_number) - 1
+        except Exception:
+            console.print(f"[red]Error occurred when selecting a star sign!")
+            raise typer.Abort()
+
+        if not -1 <= star_sign_number <= len(STAR_SIGNS) - 1:
+            console.print(f"[red]Error occurred when selecting a star sign!")
+            raise typer.Abort()
+        
+        if star_sign_number == -1:
+            star_sign = STAR_SIGNS_DISTRIBUTION.random_value
+            accept = typer.confirm(f"Random race: {star_sign.NAME}. Do you accept randomly selected race?")
+
+            if not accept:
+                self.handle_star_sign_selection()
+            else:
+                self._star_sign = star_sign
+        else:
+            self._star_sign = STAR_SIGNS[star_sign_number]
+    
+    def print_final_panel(self):
+        panel = Panel.fit(
+            Columns([self.RACE.get_table_with_race(), self.print_selected_stats_info(suppress=True), self.print_selected_star_sign_info(suppress=True)]),
+            title="Final Panel",
+            border_style="red",
+            title_align="left",
+            padding=(1, 2),
+        )
+        console.print(panel)
 
 
 @app.command(help="Create a character.")
 def main(used_talents: Annotated[str, typer.Option(help="Already used talents. Add then with commas.")] = ""):
     character = CharacterCreation()
     character.print_intro()
+
     character.print_available_races()
-    character.print_race_info()
     character.handle_race_selection()
     character.print_selected_race_info()
+
     character.print_stats_info()
     character.handle_stats_selection()
     character.print_selected_stats_info()
+
+    character.print_star_signs_info()
+    character.handle_star_sign_selection()
+    character.print_selected_star_sign_info()
+
     character.remove_used_talents(used_talents)
     character.print_random_talents()
-    character.print_star_sign_info()
+
+    character.print_final_panel()
     character.print_career_info()
     character.print_starting_exp()
+    print()
 
 
 if __name__ == "__main__":
