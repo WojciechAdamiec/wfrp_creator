@@ -38,6 +38,7 @@ class CharacterCreation:
         self._stats_blocks = None
         self._point_buy = False
         self._star_sign = None
+        self._detected_talents = []
 
     @property
     def RACE(self):
