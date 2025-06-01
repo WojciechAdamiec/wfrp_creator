@@ -21,6 +21,7 @@ console = Console()
 NUMBER_OF_STATS = 10
 NUMBER_OF_STATS_SET = 3
 MIN_VALUE_OF_STATS_SET = 100
+MIN_VALUE_OF_STATS_SET_WITHOUT_HIGH_ROLLS = 108
 MAX_VALUE_OF_STATS_SET = 130
 ADDITIONAL_COST_FOR_STATS = {
     20: 22,
@@ -178,11 +179,16 @@ class CharacterCreation:
     
     def get_set_of_stats(self):
         result = []
-        while self.compute_value_of_stats(result) < MIN_VALUE_OF_STATS_SET or self.compute_value_of_stats(result) > MAX_VALUE_OF_STATS_SET:
+        while not self.is_stat_set_valid(result):
             result = []
             for _ in range(NUMBER_OF_STATS):
                 result.append(randint(1, 10) + randint(1, 10))
         return result
+
+    def is_stat_set_valid(self, result):
+        if sum(result) == self.compute_value_of_stats(result):
+            return MIN_VALUE_OF_STATS_SET_WITHOUT_HIGH_ROLLS <= self.compute_value_of_stats(result) <= MAX_VALUE_OF_STATS_SET
+        return MIN_VALUE_OF_STATS_SET <= self.compute_value_of_stats(result) <= MAX_VALUE_OF_STATS_SET
 
     def compute_value_of_stats(self, stats):
         return sum([stat if stat not in ADDITIONAL_COST_FOR_STATS else ADDITIONAL_COST_FOR_STATS[stat] for stat in stats])
@@ -320,6 +326,7 @@ def main(
     ):
     character = CharacterCreation()
     character.print_intro()
+    character.remove_used_talents(used_talents)
 
     character.print_available_races()
     character.handle_race_selection()
@@ -332,8 +339,6 @@ def main(
     character.print_star_signs_info()
     character.handle_star_sign_selection()
     character.print_selected_star_sign_info()
-
-    character.remove_used_talents(used_talents)
 
     character.print_final_panel(number_of_random_talents)
 
