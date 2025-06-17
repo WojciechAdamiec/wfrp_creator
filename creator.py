@@ -6,16 +6,21 @@ from rich.columns import Columns
 from rich.console import Console
 from rich.table import Table
 from rich.prompt import Prompt
-from rich import print
+from rich.traceback import install
 from visuals import get_color_cycle
 from random_talents import RANDOM_TALENTS
 from races import RACES, RACES_DISTRIBUTION
 from star_signs import STAR_SIGNS, STAR_SIGNS_DISTRIBUTION
 import typer
+import os
 
 
 app = typer.Typer()
-console = Console()
+install()
+console = Console(record=True)
+
+
+DUMPS_DIRECTORY = "dumps"
 
 
 NUMBER_OF_STATS = 10
@@ -317,6 +322,12 @@ class CharacterCreation:
         )
         console.print(panel)
         console.print(self.get_outro_info())
+    
+    def save_to_file(self):
+        if not os.path.exists(DUMPS_DIRECTORY):
+            os.makedirs(DUMPS_DIRECTORY)
+        file_number = len([entry for entry in os.listdir(DUMPS_DIRECTORY) if os.path.isfile(os.path.join(DUMPS_DIRECTORY, entry))]) + 1
+        console.save_html(f"{DUMPS_DIRECTORY}/character_{file_number}.html")
 
 
 @app.command(help="Create a character.")
@@ -341,7 +352,8 @@ def main(
     character.print_selected_star_sign_info()
 
     character.print_final_panel(number_of_random_talents)
-
+    character.save_to_file()
+    
 
 if __name__ == "__main__":
     app()
