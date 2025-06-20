@@ -21,17 +21,20 @@ console = Console(record=True)
 
 
 DUMPS_DIRECTORY = "dumps"
-
-
 NUMBER_OF_STATS = 10
 NUMBER_OF_STATS_SET = 3
-MIN_VALUE_OF_STATS_SET = 100
+MIN_VALUE_OF_STATS_SET = 105
 MIN_VALUE_OF_STATS_SET_WITHOUT_HIGH_ROLLS = 108
 MAX_VALUE_OF_STATS_SET = 130
 ADDITIONAL_COST_FOR_STATS = {
     20: 22,
     19: 20,
 }
+GUARANTEED_HIGH_ROLLS = [
+    18,
+    19,
+    20,
+]
 POINT_BUY = 105
 SHOW_STAT_VALUES = True
 STARTING_EXP = 300
@@ -191,6 +194,9 @@ class CharacterCreation:
         return result
 
     def is_stat_set_valid(self, result):
+        has_high_rolls = any(stat in GUARANTEED_HIGH_ROLLS for stat in result)
+        if not has_high_rolls:
+            return False
         if sum(result) == self.compute_value_of_stats(result):
             return MIN_VALUE_OF_STATS_SET_WITHOUT_HIGH_ROLLS <= self.compute_value_of_stats(result) <= MAX_VALUE_OF_STATS_SET
         return MIN_VALUE_OF_STATS_SET <= self.compute_value_of_stats(result) <= MAX_VALUE_OF_STATS_SET
